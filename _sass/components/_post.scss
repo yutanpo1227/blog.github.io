@@ -5,6 +5,11 @@
 ///
 
 /* Post */
+
+img {
+	max-width: 50%;
+	border: 1px solid #eee;
+  }
 	
 	.post {
 		@include padding(_size(section-spacing), _size(section-spacing));
