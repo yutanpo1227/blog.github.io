@@ -1,4 +1,4 @@
-I"��<p><img src="/blog.github.io/post-img/category2/IMU/IMUunit.jpeg" alt="IMUunit" /></p>
+I"�<p><img src="/blog.github.io/post-img/category2/IMU/IMUunit.jpeg" alt="IMUunit" /></p>
 <h1 id="とりあえずサンプルコードで動かしてみる">とりあえずサンプルコードで動かしてみる</h1>
 <p>今回はArduinoIDEを用いて実験をします。
 M5Stack公式から出されているUiFlow-IDEを用いても良いのですが、アイコンが使いづらい上処理も遅いので好きじゃありません。
@@ -70,9 +70,11 @@ M5Stack公式から出されているUiFlow-IDEを用いても良いのですが
   <span class="n">delay</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre></div></div>
-<p>一応、値を見ることができました。
-<img src="/blog.github.io/post-img/category2/IMU/IMUunit2.jpeg" alt="" />
-しかしこのdegreeのyaw角ドリフトがある上に、回転する速度によって変化する値が結構変わってしまう、、、</p>
+<p>一応、値を見ることができました。</p>
+
+<p><img src="/blog.github.io/post-img/category2/IMU/IMUunit2.jpeg" alt="" /></p>
+
+<p>しかしこのdegreeのyaw角ドリフトがある上に、回転する速度によって変化する値が結構変わってしまう、、、</p>
 
 <h1 id="yaw角を求めるプログラムを作る">yaw角を求めるプログラムを作る</h1>
 <p>yaw角以外の値はぱっと見正しそうなので今回はyaw角だけ求めるプログラムを自分で作ることにしました。</p>
@@ -260,25 +262,17 @@ M5Stack公式から出されているUiFlow-IDEを用いても良いのですが
 <p>Calibrationでは一番上でdefineした数CALIBCOUNT分だけデータを取りその値を平均した値をオフセット値に代入するという関数になっています。キャリブレーション中はIMUを動かさないというのが前提です。</p>
 <h2 id="yaw角の角度変化を求める関数getgyro">yaw角の角度変化を求める関数GetGyro</h2>
 <p>GetGyroでは縦軸角速度(deg/s)、横軸時間(s)からなるグラフの面積を積算することで角度変化を求めるということをしています。（積分には台形による積算の方法を用いています。詳しくはこちらのサイトを参考にさせていただきました）</p>
-<div class="embed">
-    <a href="/https://garchiving.com/angular-from-angular-acceleration/">
-      <div class="body">
-        <div class="content">
-          <div class="title">/ABOUT – Ognjen Regoje • ognjen.io</div>
-          <div class="description">About Ognjen Regoje and what he does.</div>
-        </div>
-        <span class="link">https://garchiving.com/angular-from-angular-acceleration/</span>
-      </div>
-    </a>
-  </div>
-<p>実際にyawに入る値は-180~180になるようにしています。</p>
+
+<p><a href="https://garchiving.com/angular-from-angular-acceleration/">https://garchiving.com/angular-from-angular-acceleration/</a>
+<br />
+実際にyawに入る値は-180~180になるようにしています。</p>
 <h2 id="ジャイロの方向を初期化する関数resetgyro">ジャイロの方向を初期化する関数ResetGyro</h2>
 <p>ResetGyroはyaw角を求めるために必要なパラメーターとyaw角自体を初期化するという簡単なものです。</p>
 <h2 id="最後に求めたyaw角の角度変化を可視化する関数main">最後に、求めたyaw角の角度変化を可視化する関数Main</h2>
 <p>今回最終的にやりたかったことが角度変化を可視化することであったのでMainという名をつけました。
 この関数では実際にGetGyroで求めた値を円上にプロットすることで可視化するというものです。円上の点の座標は半径をx、θをyaw角の角度変化とすると（xcosθ,xsinθ）となります。なので最終的に半径xの円を画面中央に描画し(円の中心x座標＋(xcosθ),円の中心y座標＋(xsinθ))に点を描画することで可視化できました。</p>
 
-<p>https://twitter.com/yuu_gakusei/status/1521056534536790027?s=20&amp;t=FiqcXCQDZsZt6hhCP67ssQ</p>
-
-<p>しかし一度描画した点は自動的に消えてはくれないので、毎回次のループでその点を黒く塗るということをおこなっています。そのせいで表示と消すという動きを繰り返すため点が点滅してしまい少し見づらいです、、、何かいい方法はないのでしょうか、、</p>
+<p><a href="https://twitter.com/yuu_gakusei/status/1521056534536790027?s=20&amp;t=FiqcXCQDZsZt6hhCP67ssQ">https://twitter.com/yuu_gakusei/</a>
+<br />
+しかし一度描画した点は自動的に消えてはくれないので、毎回次のループでその点を黒く塗るということをおこなっています。そのせいで表示と消すという動きを繰り返すため点が点滅してしまい少し見づらいです、、、何かいい方法はないのでしょうか、、</p>
 :ET
