@@ -5,6 +5,9 @@ layout: default
   <header> 
     <div class="title">
       <h2>{{ page.title | escape }}</h2>
+      <ul class="stats">
+        <li><a class="icon" href="{{ site.baseurl }}/{{ post.category }}"><i class="fas fa-fw fa-folder"></i> {{ post.category }}</a></li>
+      </ul>
       <!--<p><a href="//github.com/yutanpo1227/blog.github.io/blob/master/{{ page.path }}" class="icon"><i class="fas fa-fw fa-edit"></i> GitHubで編集</a></p>-->
     </div>
     <div class="meta">
@@ -16,7 +19,8 @@ layout: default
   
   <footer>
     <ul class="stats">
-      <li><a class="icon" href="{{ site.url }}"><i class="fas fa-fw fa-folder"></i> GitHub</a></li>
+      <li><a class="icon" href="{{ site.baseurl }}/{{ post.category }}"><i class="fas fa-fw fa-folder"></i> {{ post.category }}</a></li>
+      <!--<li><a class="icon" href="{{ site.url }}"><i class="fas fa-fw fa-folder"></i> GitHub</a></li>-->
       <!--<li><a href="//github.com/yutanpo1227/blog.github.io/blob/master/{{ page.path }}" class="icon"><i class="fas fa-fw fa-edit"></i> Edit</a></li>-->
     </ul>
   </footer>
