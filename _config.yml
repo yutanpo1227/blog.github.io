@@ -17,6 +17,8 @@ author:
   telegram_name: ゆたんぽすと
   logo: '/images/logo.svg'
 
+highlighter: rouge
+
 # Build settings
 markdown: kramdown
 
