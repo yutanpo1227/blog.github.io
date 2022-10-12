@@ -1,56 +1,62 @@
----
-layout: post
-title:  "M5Stackとswiftでスマホからエアコンを操作する"
-date:   2022-10-10 13:39　+0900
-category: 開発
-icon: git
-keywords: tag1, tag2
-image: /IR/featured.jpg
-preview: 0
----
+I"5<p><img src="/blog.github.io/post-img/開発/IR/featured.jpg" alt="Top" /></p>
 
-![Top]({{site.baseurl}}/post-img/開発/IR/featured.jpg)
-
-最近流行っているIoTの世界にも手を出してみたいと思い、swiftでアプリを作成、M5Stackと赤外線送受信ユニットでスマホからエアコンを操作するというものを作ってみました。
-<details open markdown="block">
+<p>最近流行っているIoTの世界にも手を出してみたいと思い、swiftでアプリを作成、M5Stackと赤外線送受信ユニットでスマホからエアコンを操作するというものを作ってみました。</p>
+<details open="">
   <summary>目次</summary>
-- TOC
-{:toc}
+<ul id="markdown-toc">
+  <li><a href="#構成" id="markdown-toc-構成">構成</a></li>
+  <li><a href="#環境" id="markdown-toc-環境">環境</a></li>
+  <li><a href="#swiftでのアプリ作成" id="markdown-toc-swiftでのアプリ作成">Swiftでのアプリ作成</a></li>
+  <li><a href="#m5stackでの処理" id="markdown-toc-m5stackでの処理">M5Stackでの処理</a></li>
+</ul>
+
 </details>
-<br>
+<p><br /></p>
 
-# 構成
+<h1 id="構成">構成</h1>
 
-![構成]({{site.baseurl}}/post-img/開発/IR/構成.png)
+<p><img src="/blog.github.io/post-img/開発/IR/構成.png" alt="構成" /></p>
 
-- SwiftでiPhoneからM5StackにUDP通信で送信するアプリを作成
-- M5Stackで受信したUDP通信を処理して赤外線送受信ユニットでエアコンに送信する
-- エアコンの赤外線を受信して、エアコンを操作する
+<ul>
+  <li>SwiftでiPhoneからM5StackにUDP通信で送信するアプリを作成</li>
+  <li>M5Stackで受信したUDP通信を処理して赤外線送受信ユニットでエアコンに送信する</li>
+  <li>エアコンの赤外線を受信して、エアコンを操作する</li>
+</ul>
 
-# 環境
+<h1 id="環境">環境</h1>
 
-- iOSアプリ
-    - Swift 5.7
-    - iPhone 13 Pro max : iOS 16.0.2
-- M5Stack
-    - M5Stack Basic
-    - M5Stack 赤外線送受信ユニット(U002)
+<ul>
+  <li>iOSアプリ
+    <ul>
+      <li>Swift 5.7</li>
+      <li>iPhone 13 Pro max : iOS 16.0.2</li>
+    </ul>
+  </li>
+  <li>M5Stack
+    <ul>
+      <li>M5Stack Basic</li>
+      <li>M5Stack 赤外線送受信ユニット(U002)</li>
+    </ul>
+  </li>
+  <li>開発環境
+    <ul>
+      <li>macOS Monterey 12.6</li>
+      <li>Xcode 14.0.1</li>
+      <li>PlatformIO Core 6.1.4</li>
+    </ul>
+  </li>
+</ul>
 
-- 開発環境
-    - macOS Monterey 12.6
-    - Xcode 14.0.1
-    - PlatformIO Core 6.1.4
+<h1 id="swiftでのアプリ作成">Swiftでのアプリ作成</h1>
 
-# Swiftでのアプリ作成
+<p>今回Swiftでのアプリ作成は初だったのでStoryboardでの作成を行いました。</p>
 
-今回Swiftでのアプリ作成は初だったのでStoryboardでの作成を行いました。
+<p><img src="/blog.github.io/post-img/開発/IR/storyboard.png" alt="StoryBoard" /></p>
 
-![StoryBoard]({{site.baseurl}}/post-img/開発/IR/storyboard.png)
+<p>まずはボタンの配置をサクッと行い、ボタンを押した時にUDP通信を送信するように設定しました。<br />
+UDP通信の送信は以下のような関数を実装しました。</p>
 
-まずはボタンの配置をサクッと行い、ボタンを押した時にUDP通信を送信するように設定しました。<br>
-UDP通信の送信は以下のような関数を実装しました。
-
-<details open markdown = "block">
+<details>
 <summary>UDP通信の関数(swift)</summary>
 
 ```swift
@@ -120,7 +126,7 @@ func disconnect(connection: NWConnection)
     connection.cancel()
 }
 
-func connect(host: String, port: String) -> NWConnection
+func connect(host: String, port: String) -&gt; NWConnection
 {
     let t_host = NWEndpoint.Host(host)
     let t_port = NWEndpoint.Port(port)
@@ -159,10 +165,10 @@ func connect(host: String, port: String) -> NWConnection
 ```
 
 </details>
-<br>
-遷移後の画面では、赤外線送受信ユニットに送信するボタンに対し送信する文字列の割り当てや現在の温度、風量などを表示するようにしました。
+<p><br />
+遷移後の画面では、赤外線送受信ユニットに送信するボタンに対し送信する文字列の割り当てや現在の温度、風量などを表示するようにしました。</p>
 
-<details open markdown = "block">
+<details>
 <summary>UDP通信のボタン送信(swift)</summary>
 
 ```swift
@@ -246,13 +252,13 @@ class ModalViewController: UIViewController {
 
 </details>
 
-# M5Stackでの処理
+<h1 id="m5stackでの処理">M5Stackでの処理</h1>
 
-M5Stackではスマホからの通信で送られてきた文字列によって適切な赤外線データを送信するという処理を実装しました。<br>
-今回うちのエアコンは赤外線ユニットのライブラリにある機種ではなかったため予め読み取ったRawDataを送信しています。<br>
-赤外線のRawDataの読み取りは、<span style="color: #00FF66; ">[こちらの記事](https://qiita.com/coppercele/items/ed91646944ca28ff0c07)</span>を参考にしました。<br>
+<p>M5Stackではスマホからの通信で送られてきた文字列によって適切な赤外線データを送信するという処理を実装しました。<br />
+今回うちのエアコンは赤外線ユニットのライブラリにある機種ではなかったため予め読み取ったRawDataを送信しています。<br />
+赤外線のRawDataの読み取りは、<span style="color: #00FF66; "><a href="https://qiita.com/coppercele/items/ed91646944ca28ff0c07">こちらの記事</a></span>を参考にしました。<br /></p>
 
-<details open markdown = "block">
+<details>
 <summary>M5Stackでの赤外線送信</summary>
 
 ```c++
@@ -424,13 +430,15 @@ void loop()
 }
 ```
 
-</details>
+&lt;/details&gt;
 
 # 実際の動作
 
-実際に動作させたときの動画は<span style="color: #00FF66; ">[こちら](https://twitter.com/yuu_gakusei/status/1579119524573769729)</span>です。<br>
+実際に動作させたときの動画は<span style="color: #00FF66; ">[こちら](https://twitter.com/yuu_gakusei/status/1579119524573769729)</span>です。<br />
 
 # まとめ
 
-今回初めてSwiftでのアプリ開発をしてみた割に意外と思っていた動作を実現できてよかったです。<br>
+今回初めてSwiftでのアプリ開発をしてみた割に意外と思っていた動作を実現できてよかったです。<br />
 現段階ではローカルな環境でしか動作しないため、今後は外部からのアクセスができるようにしたいと考えています。
+</WiFiUdp.h></WiFi.h></IRsend.h></IRremoteESP8266.h></M5Stack.h></details>
+:ET
