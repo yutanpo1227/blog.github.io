@@ -1,4 +1,4 @@
-I"�<p><img src="/blog.github.io/post-img/開発/IMU/IMUunit.jpeg" alt="IMUunit" /></p>
+I"�<p><img src="/blog.github.io/post-img/development/IMU/IMUunit.jpeg" alt="IMUunit" /></p>
 <h1 id="とりあえずサンプルコードで動かしてみる">とりあえずサンプルコードで動かしてみる</h1>
 <p>今回はArduinoIDEを用いて実験をします。
 M5Stack公式から出されているUiFlow-IDEを用いても良いのですが、アイコンが使いづらい上処理も遅いので好きじゃありません。

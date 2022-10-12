@@ -1,9 +1,9 @@
 # blog page sections
-- name: AboutMe
-  href: '/AboutMe/'
+- name: aboutme
+  href: '/aboutme/'
   
-- name: 雑記
-  href: '/雑記/'
+- name: notes
+  href: '/notes/'
 
-- name: 開発
-  href: '/開発/'
+- name: development
+  href: '/development/'

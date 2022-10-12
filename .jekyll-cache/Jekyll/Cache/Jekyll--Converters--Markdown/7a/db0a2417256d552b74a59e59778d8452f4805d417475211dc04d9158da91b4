@@ -1,10 +1,10 @@
-I"��<p><img src="/blog.github.io/post-img/開発/IR/featured.jpg" alt="Top" /></p>
+I"�<p><img src="/blog.github.io/post-img/development/IR/featured.jpg" alt="Top" /></p>
 
 <p>最近流行っているIoTの世界にも手を出してみたいと思い、swiftでアプリを作成、M5Stackと赤外線送受信ユニットでスマホからエアコンを操作するというものを作ってみました。</p>
 
 <h1 id="構成">構成</h1>
 
-<p><img src="/blog.github.io/post-img/開発/IR/構成.png" alt="構成" /></p>
+<p><img src="/blog.github.io/post-img/development/IR/構成.png" alt="構成" /></p>
 
 <ul>
   <li>SwiftでiPhoneからM5StackにUDP通信で送信するアプリを作成</li>
@@ -27,7 +27,7 @@
       <li>M5Stack 赤外線送受信ユニット(U002)</li>
     </ul>
   </li>
-  <li>開発環境
+  <li>development環境
     <ul>
       <li>macOS Monterey 12.6</li>
       <li>Xcode 14.0.1</li>
@@ -40,7 +40,7 @@
 
 <p>今回Swiftでのアプリ作成は初だったのでStoryboardでの作成を行いました。</p>
 
-<p><img src="/blog.github.io/post-img/開発/IR/storyboard.png" alt="StoryBoard" /></p>
+<p><img src="/blog.github.io/post-img/development/IR/storyboard.png" alt="StoryBoard" /></p>
 
 <p>まずはボタンの配置をサクッと行い、ボタンを押した時にUDP通信を送信するように設定しました。<br />
 UDP通信の送信は以下のような関数を実装しました。</p>
@@ -408,6 +408,6 @@ UDP通信の送信は以下のような関数を実装しました。</p>
 
 <h1 id="まとめ">まとめ</h1>
 
-<p>今回初めてSwiftでのアプリ開発をしてみた割に意外と思っていた動作を実現できてよかったです。<br />
+<p>今回初めてSwiftでのアプリdevelopmentをしてみた割に意外と思っていた動作を実現できてよかったです。<br />
 現段階ではローカルな環境でしか動作しないため、今後は外部からのアクセスができるようにしたいと考えています。</p>
 :ET
