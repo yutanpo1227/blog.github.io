@@ -21,6 +21,8 @@ highlighter: rouge
 
 # Build settings
 markdown: kramdown
+kramdown:
+  use_coderay: true
 
 permalink: /:categories/:year/:title.html
 
