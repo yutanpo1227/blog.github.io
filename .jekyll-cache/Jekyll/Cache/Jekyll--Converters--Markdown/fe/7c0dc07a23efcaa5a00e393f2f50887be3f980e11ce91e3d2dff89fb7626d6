@@ -1,4 +1,4 @@
-I"� <p><img src="/blog.github.io/post-img/category2/unitV/unitV.jpeg" alt="UnitV" /></p>
+I"� <p><img src="/blog.github.io/post-img/開発/unitV/unitV.jpeg" alt="UnitV" /></p>
 
 <h1 id="maixpy-ideでの開発">MaixPy IDEでの開発</h1>
 <p><a href="http://dl.sipeed.com/shareURL/MAIX/MaixPy/ide/v0.2.5" title="MaixyPy">こちら</a>からMaixPyをダウンロードしました。
@@ -44,7 +44,7 @@
         <span class="k">print</span><span class="p">(</span><span class="s">"x = "</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="s">"   y = "</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 </code></pre></div></div>
 <p>指定した色閾値内の物体を探し一番面積の大きいものを抽出するというシンプルな物です。
-<img src="/blog.github.io/post-img/category2/unitV/unitVprog.png" alt="" /></p>
+<img src="/blog.github.io/post-img/開発/unitV/unitVprog.png" alt="" /></p>
 
 <p>今回はおーいお茶のキャップを使用しました。ちゃんとキャップを囲う四角形が描画され中心座標がシリアルに出力されました。</p>
 <h1 id="次回以降について">次回以降について</h1>

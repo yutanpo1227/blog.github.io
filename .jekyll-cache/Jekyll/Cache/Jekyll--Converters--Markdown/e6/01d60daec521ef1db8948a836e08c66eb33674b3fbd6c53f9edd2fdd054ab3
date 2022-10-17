@@ -1,0 +1,430 @@
+I"��<p><img src="/blog.github.io/post-img/開発/IR/featured.jpg" alt="Top" /></p>
+
+<p>最近流行っているIoTの世界にも手を出してみたいと思い、swiftでアプリを作成、M5Stackと赤外線送受信ユニットでスマホからエアコンを操作するというものを作ってみました。</p>
+<details open="">
+  <summary>Table of Contents</summary>
+<ul id="markdown-toc">
+  <li><a href="#構成" id="markdown-toc-構成">構成</a></li>
+  <li><a href="#環境" id="markdown-toc-環境">環境</a></li>
+  <li><a href="#swiftでのアプリ作成" id="markdown-toc-swiftでのアプリ作成">Swiftでのアプリ作成</a></li>
+  <li><a href="#m5stackでの処理" id="markdown-toc-m5stackでの処理">M5Stackでの処理</a></li>
+  <li><a href="#実際の動作" id="markdown-toc-実際の動作">実際の動作</a></li>
+  <li><a href="#まとめ" id="markdown-toc-まとめ">まとめ</a></li>
+</ul>
+
+</details>
+
+<h1 id="構成">構成</h1>
+
+<p><img src="/blog.github.io/post-img/開発/IR/構成.png" alt="構成" /></p>
+
+<ul>
+  <li>SwiftでiPhoneからM5StackにUDP通信で送信するアプリを作成</li>
+  <li>M5Stackで受信したUDP通信を処理して赤外線送受信ユニットでエアコンに送信する</li>
+  <li>エアコンの赤外線を受信して、エアコンを操作する</li>
+</ul>
+
+<h1 id="環境">環境</h1>
+
+<ul>
+  <li>iOSアプリ
+    <ul>
+      <li>Swift 5.7</li>
+      <li>iPhone 13 Pro max : iOS 16.0.2</li>
+    </ul>
+  </li>
+  <li>M5Stack
+    <ul>
+      <li>M5Stack Basic</li>
+      <li>M5Stack 赤外線送受信ユニット(U002)</li>
+    </ul>
+  </li>
+  <li>開発環境
+    <ul>
+      <li>macOS Monterey 12.6</li>
+      <li>Xcode 14.0.1</li>
+      <li>PlatformIO Core 6.1.4</li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="swiftでのアプリ作成">Swiftでのアプリ作成</h1>
+
+<p>今回Swiftでのアプリ作成は初だったのでStoryboardでの作成を行いました。</p>
+
+<p><img src="/blog.github.io/post-img/開発/IR/storyboard.png" alt="StoryBoard" /></p>
+
+<p>まずはボタンの配置をサクッと行い、ボタンを押した時にUDP通信を送信するように設定しました。<br />
+UDP通信の送信は以下のような関数を実装しました。</p>
+
+<details open="">
+  <summary>UDP通信の送信</summary>
+
+  <div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+<span class="kd">import</span> <span class="kt">Foundation</span>
+<span class="kd">import</span> <span class="kt">Network</span>
+
+<span class="k">let</span> <span class="nv">host</span> <span class="o">=</span> <span class="s">"***.***.***.***"</span>
+<span class="k">let</span> <span class="nv">port</span> <span class="o">=</span> <span class="s">"****"</span>
+
+<span class="cm">/* コネクション開始 */</span>
+<span class="k">let</span> <span class="nv">connection</span> <span class="o">=</span> <span class="nf">connect</span><span class="p">(</span><span class="nv">host</span><span class="p">:</span> <span class="n">host</span><span class="p">,</span> <span class="nv">port</span><span class="p">:</span> <span class="n">port</span><span class="p">)</span>
+
+<span class="kd">class</span> <span class="kt">ViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">@IBOutlet</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">status_label</span><span class="p">:</span> <span class="kt">UILabel</span><span class="o">!</span>
+    
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="c1">// Do any additional setup after loading the view.</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="kt">NWConnection</span><span class="p">,</span><span class="nv">message</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="p">{</span>
+    <span class="cm">/* 送信データ生成 */</span>
+    <span class="k">let</span> <span class="nv">data</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="nf">data</span><span class="p">(</span><span class="nv">using</span><span class="p">:</span> <span class="o">.</span><span class="n">utf8</span><span class="p">)</span><span class="o">!</span>
+    <span class="k">let</span> <span class="nv">semaphore</span> <span class="o">=</span> <span class="kt">DispatchSemaphore</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="cm">/* データ送信 */</span>
+    <span class="n">connection</span><span class="o">.</span><span class="nf">send</span><span class="p">(</span><span class="nv">content</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="nv">completion</span><span class="p">:</span> <span class="o">.</span><span class="n">contentProcessed</span> <span class="p">{</span> <span class="n">error</span> <span class="k">in</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">error</span> <span class="o">=</span> <span class="n">error</span> <span class="p">{</span>
+            <span class="kt">NSLog</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="kd">#function</span><span class="se">)</span><span class="s">, </span><span class="se">\(</span><span class="n">error</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">semaphore</span><span class="o">.</span><span class="nf">signal</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="cm">/* 送信完了待ち */</span>
+    <span class="n">semaphore</span><span class="o">.</span><span class="nf">wait</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">recv</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="kt">NWConnection</span><span class="p">){</span>
+    <span class="k">let</span> <span class="nv">semaphore</span> <span class="o">=</span> <span class="kt">DispatchSemaphore</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">var</span> <span class="nv">result</span> <span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
+    <span class="cm">/* データ受信 */</span>
+    <span class="n">connection</span><span class="o">.</span><span class="nf">receive</span><span class="p">(</span><span class="nv">minimumIncompleteLength</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="nv">maximumLength</span><span class="p">:</span> <span class="mi">65535</span><span class="p">,</span>
+                       <span class="nv">completion</span><span class="p">:{(</span><span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">flag</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="k">in</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">error</span> <span class="o">=</span> <span class="n">error</span> <span class="p">{</span>
+            <span class="kt">NSLog</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="kd">#function</span><span class="se">)</span><span class="s">, </span><span class="se">\(</span><span class="n">error</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="k">let</span> <span class="nv">data</span> <span class="o">=</span> <span class="n">data</span> <span class="p">,</span><span class="k">let</span> <span class="nv">message</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="nv">data</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="nv">encoding</span><span class="p">:</span> <span class="o">.</span><span class="n">utf8</span><span class="p">){</span>
+                <span class="nf">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                <span class="cm">/* 受信データのデシリアライズ */</span>
+                <span class="n">semaphore</span><span class="o">.</span><span class="nf">signal</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="k">else</span> <span class="p">{</span>
+                <span class="kt">NSLog</span><span class="p">(</span><span class="s">"receiveMessage data nil"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="cm">/* 受信完了待ち */</span>
+    <span class="n">semaphore</span><span class="o">.</span><span class="nf">wait</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">disconnect</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="kt">NWConnection</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cm">/* コネクション切断 */</span>
+    <span class="n">connection</span><span class="o">.</span><span class="nf">cancel</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">connect</span><span class="p">(</span><span class="nv">host</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">port</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">NWConnection</span>
+<span class="p">{</span>
+    <span class="k">let</span> <span class="nv">t_host</span> <span class="o">=</span> <span class="kt">NWEndpoint</span><span class="o">.</span><span class="kt">Host</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">t_port</span> <span class="o">=</span> <span class="kt">NWEndpoint</span><span class="o">.</span><span class="kt">Port</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">connection</span> <span class="p">:</span> <span class="kt">NWConnection</span>
+    <span class="k">let</span> <span class="nv">semaphore</span> <span class="o">=</span> <span class="kt">DispatchSemaphore</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="cm">/* コネクションの初期化 */</span>
+    <span class="n">connection</span> <span class="o">=</span> <span class="kt">NWConnection</span><span class="p">(</span><span class="nv">host</span><span class="p">:</span> <span class="n">t_host</span><span class="p">,</span> <span class="nv">port</span><span class="p">:</span> <span class="n">t_port</span><span class="o">!</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="o">.</span><span class="n">udp</span><span class="p">)</span>
+
+    <span class="cm">/* コネクションのStateハンドラ設定 */</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">stateUpdateHandler</span> <span class="o">=</span> <span class="p">{</span> <span class="p">(</span><span class="n">newState</span><span class="p">)</span> <span class="k">in</span>
+        <span class="k">switch</span> <span class="n">newState</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nv">ready</span><span class="p">:</span>
+                <span class="kt">NSLog</span><span class="p">(</span><span class="s">"Ready to send"</span><span class="p">)</span>
+                <span class="n">semaphore</span><span class="o">.</span><span class="nf">signal</span><span class="p">()</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nf">waiting</span><span class="p">(</span><span class="k">let</span> <span class="nv">error</span><span class="p">):</span>
+                <span class="kt">NSLog</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="kd">#function</span><span class="se">)</span><span class="s">, </span><span class="se">\(</span><span class="n">error</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nf">failed</span><span class="p">(</span><span class="k">let</span> <span class="nv">error</span><span class="p">):</span>
+                <span class="kt">NSLog</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="kd">#function</span><span class="se">)</span><span class="s">, </span><span class="se">\(</span><span class="n">error</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nv">setup</span><span class="p">:</span> <span class="k">break</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nv">cancelled</span><span class="p">:</span> <span class="k">break</span>
+            <span class="k">case</span> <span class="o">.</span><span class="nv">preparing</span><span class="p">:</span> <span class="k">break</span>
+            <span class="kd">@unknown</span> <span class="k">default</span><span class="p">:</span>
+                <span class="nf">fatalError</span><span class="p">(</span><span class="s">"Illegal state"</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    
+    <span class="cm">/* コネクション開始 */</span>
+    <span class="k">let</span> <span class="nv">queue</span> <span class="o">=</span> <span class="kt">DispatchQueue</span><span class="p">(</span><span class="nv">label</span><span class="p">:</span> <span class="s">"example"</span><span class="p">)</span>
+    <span class="n">connection</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">queue</span><span class="p">:</span><span class="n">queue</span><span class="p">)</span>
+
+    <span class="cm">/* コネクション完了待ち */</span>
+    <span class="n">semaphore</span><span class="o">.</span><span class="nf">wait</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">connection</span>
+<span class="p">}</span>
+</code></pre></div>  </div>
+
+</details>
+<p>遷移後の画面では、赤外線送受信ユニットに送信するボタンに対し送信する文字列の割り当てや現在の温度、風量などを表示するようにしました。</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">UIKit</span>
+
+<span class="kd">class</span> <span class="kt">ModalViewController</span><span class="p">:</span> <span class="kt">UIViewController</span> <span class="p">{</span>
+    <span class="kd">@IBOutlet</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">label_temp</span><span class="p">:</span> <span class="kt">UILabel</span><span class="o">!</span>
+    <span class="kd">@IBOutlet</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">label_level</span><span class="p">:</span> <span class="kt">UILabel</span><span class="o">!</span>
+    <span class="kd">@IBOutlet</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">label_mode</span><span class="p">:</span> <span class="kt">UILabel</span><span class="o">!</span>
+    <span class="k">var</span> <span class="nv">mode</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="k">var</span> <span class="nv">temp</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">var</span> <span class="nv">level</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">super</span><span class="o">.</span><span class="nf">viewDidLoad</span><span class="p">()</span>
+        <span class="n">label_temp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">""</span>
+        <span class="n">label_level</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">""</span>
+        <span class="n">label_mode</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"OFF"</span>
+
+        <span class="c1">// Do any additional setup after loading the view.</span>
+    <span class="p">}</span>
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">heat_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"heat"</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">27</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">label_temp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="o">+</span> <span class="s">"℃"</span>
+        <span class="n">label_level</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">label_mode</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"暖房"</span>
+    <span class="p">}</span>
+    
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">cool_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"cool"</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">27</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">label_temp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="o">+</span> <span class="s">"℃"</span>
+        <span class="n">label_level</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">label_mode</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"冷房"</span>
+    <span class="p">}</span>
+    
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">dehumi_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"dehumi"</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="mi">27</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">label_temp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="o">+</span> <span class="s">"℃"</span>
+        <span class="n">label_level</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">label_mode</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"除湿"</span>
+    <span class="p">}</span>
+    
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">tempup_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"tempup"</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">temp</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">label_temp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="o">+</span> <span class="s">"℃"</span>
+    <span class="p">}</span>
+    
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">tempdown_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"tempdown"</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">temp</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">label_temp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="o">+</span> <span class="s">"℃"</span>
+    <span class="p">}</span>
+    
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">levelup_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"levelup"</span><span class="p">)</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="n">level</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">label_level</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">leveldown_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"leveldown"</span><span class="p">)</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="n">level</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">label_level</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="kt">String</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+    <span class="p">}</span>
+    
+    <span class="kd">@IBAction</span> <span class="kd">func</span> <span class="nf">off_button</span><span class="p">(</span><span class="n">_</span> <span class="nv">sender</span><span class="p">:</span> <span class="kt">Any</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">send</span><span class="p">(</span><span class="nv">connection</span><span class="p">:</span> <span class="n">connection</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="s">"off"</span><span class="p">)</span>
+        <span class="n">label_temp</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">""</span>
+        <span class="n">label_level</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">""</span>
+        <span class="n">label_mode</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">"OFF"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="m5stackでの処理">M5Stackでの処理</h1>
+
+<p>M5Stackではスマホからの通信で送られてきた文字列によって適切な赤外線データを送信するという処理を実装しました。<br />
+今回うちのエアコンは赤外線ユニットのライブラリにある機種ではなかったため予め読み取ったRawDataを送信しています。<br />
+赤外線のRawDataの読み取りは、<span style="color: #00FF66; "><a href="https://qiita.com/coppercele/items/ed91646944ca28ff0c07">こちらの記事</a></span>を参考にしました。<br /></p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;M5Stack.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;IRremoteESP8266.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;IRsend.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;WiFi.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;WiFiUdp.h&gt;</span><span class="cp">
+</span>
+<span class="c1">//WiFiの設定--------------------------------------</span>
+<span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">ssid</span> <span class="o">=</span> <span class="s">"SSID"</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">pass</span> <span class="o">=</span> <span class="s">"PASS"</span><span class="p">;</span>
+
+<span class="k">const</span> <span class="kt">int</span> <span class="n">udpPort</span> <span class="o">=</span> <span class="o">****</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="n">phoneport</span> <span class="o">=</span> <span class="o">****</span><span class="p">;</span>
+
+<span class="n">WiFiUDP</span> <span class="n">udp</span><span class="p">;</span>
+
+<span class="n">IPAddress</span> <span class="nf">ip</span><span class="p">(</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">);</span>
+<span class="n">IPAddress</span> <span class="nf">gateway</span><span class="p">(</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">);</span>
+<span class="n">IPAddress</span> <span class="nf">subnet</span><span class="p">(</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">);</span>
+
+<span class="n">IPAddress</span> <span class="nf">phoneip</span><span class="p">(</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">.</span><span class="o">***</span><span class="p">);</span>
+
+<span class="c1">//-----------------------------------------------</span>
+
+
+<span class="c1">//IR送信の設定-------------------------------------</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="n">IR_SEND_PIN</span> <span class="o">=</span> <span class="mi">21</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span> <span class="o">=</span> <span class="mi">38</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="n">IR_RAW_DATA_SIZE</span> <span class="o">=</span> <span class="mi">981</span><span class="p">;</span>
+
+<span class="kt">uint16_t</span> <span class="n">heatRawData</span><span class="p">[</span><span class="n">IR_RAW_DATA_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="cm">/*省略*/</span><span class="p">};</span>
+<span class="kt">uint16_t</span> <span class="n">coolRawData</span><span class="p">[</span><span class="n">IR_RAW_DATA_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="cm">/*省略*/</span><span class="p">};</span>
+<span class="kt">uint16_t</span> <span class="n">dehumiRawData</span><span class="p">[</span><span class="n">IR_RAW_DATA_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="cm">/*省略*/</span><span class="p">};</span>
+
+<span class="kt">uint16_t</span> <span class="n">offRawData</span><span class="p">[</span><span class="n">IR_RAW_DATA_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="cm">/*省略*/</span><span class="p">};</span>
+
+<span class="n">String</span> <span class="n">nowmode</span> <span class="o">=</span> <span class="s">"stop"</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">nowtemp</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">nowlevel</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="c1">//温度ごとのデータ</span>
+<span class="kt">uint16_t</span> <span class="n">tempRawData</span><span class="p">[</span><span class="mi">15</span><span class="p">][</span><span class="n">IR_RAW_DATA_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="cm">/*省略*/</span><span class="p">};</span> 
+
+<span class="c1">//風量ごとのデータ</span>
+<span class="kt">uint16_t</span> <span class="n">levelRawData</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="n">IR_RAW_DATA_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="cm">/*省略*/</span><span class="p">};</span>
+
+<span class="n">IRsend</span> <span class="n">irsend</span><span class="p">(</span><span class="n">IR_SEND_PIN</span><span class="p">);</span>
+<span class="c1">//----------------------------------------------</span>
+
+<span class="kt">void</span> <span class="n">setup</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">irsend</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="mi">115200</span><span class="p">);</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">setTextSize</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+
+  <span class="n">WiFi</span><span class="p">.</span><span class="n">config</span><span class="p">(</span><span class="n">ip</span><span class="p">,</span><span class="n">gateway</span><span class="p">,</span><span class="n">subnet</span><span class="p">);</span>
+  <span class="c1">//Wi-Fi接続</span>
+  <span class="n">WiFi</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">ssid</span><span class="p">,</span><span class="n">pass</span><span class="p">);</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">printf</span><span class="p">(</span><span class="s">"Waiting connect to WiFi: %s "</span><span class="p">,</span> <span class="n">ssid</span><span class="p">);</span>
+  <span class="k">while</span><span class="p">(</span><span class="n">WiFi</span><span class="p">.</span><span class="n">status</span><span class="p">()</span> <span class="o">!=</span> <span class="n">WL_CONNECTED</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">//接続完了まで待つ</span>
+    <span class="n">delay</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span>
+    <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">"."</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="c1">//udp待受開始</span>
+  <span class="n">udp</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="n">udpPort</span><span class="p">);</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="s">"Waiting udp packet..."</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">loop</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">setCursor</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">120</span><span class="p">);</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">printf</span><span class="p">(</span><span class="s">"mode:%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">nowmode</span><span class="p">);</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">printf</span><span class="p">(</span><span class="s">"temp:%d  "</span><span class="p">,</span><span class="n">nowtemp</span><span class="p">);</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">printf</span><span class="p">(</span><span class="s">"level:%d"</span><span class="p">,</span><span class="n">nowlevel</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="n">udp</span><span class="p">.</span><span class="n">parsePacket</span><span class="p">())</span> <span class="p">{</span>
+    <span class="c1">//udpパケットを読み込む</span>
+    <span class="kt">char</span> <span class="n">buff</span><span class="p">[</span><span class="n">len</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
+    <span class="n">memset</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span> <span class="sc">'\0'</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buff</span><span class="p">));</span>
+    <span class="n">udp</span><span class="p">.</span><span class="n">read</span><span class="p">((</span><span class="kt">uint8_t</span><span class="o">*</span><span class="p">)</span><span class="n">buff</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+    <span class="n">String</span> <span class="n">str</span> <span class="o">=</span> <span class="n">buff</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">buff</span> <span class="o">==</span> <span class="s">"setup"</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="kt">uint8_t</span> <span class="n">message</span> <span class="o">=</span> <span class="mi">1111</span><span class="p">;</span>
+      <span class="n">udp</span><span class="p">.</span><span class="n">beginPacket</span><span class="p">(</span><span class="n">phoneip</span><span class="p">,</span><span class="n">phoneport</span><span class="p">);</span>
+      <span class="n">udp</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+      <span class="n">udp</span><span class="p">.</span><span class="n">endPacket</span><span class="p">();</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"heat"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//暖房のデータと初期値：温度27℃、風量2を送信</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">heatRawData</span><span class="p">,</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">tempRawData</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">levelRawData</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">nowmode</span> <span class="o">=</span> <span class="s">"heater"</span><span class="p">;</span>
+      <span class="n">nowtemp</span> <span class="o">=</span> <span class="mi">27</span><span class="p">;</span>
+      <span class="n">nowlevel</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"cool"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//冷房のデータと初期値：温度27℃、風量2を送信</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">coolRawData</span><span class="p">,</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">tempRawData</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">levelRawData</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">nowmode</span> <span class="o">=</span> <span class="s">"cooler"</span><span class="p">;</span>
+      <span class="n">nowtemp</span> <span class="o">=</span> <span class="mi">27</span><span class="p">;</span>
+      <span class="n">nowlevel</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"dehumi"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//除湿のデータと初期値：温度27℃、風量2を送信</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">dehumiRawData</span><span class="p">,</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">tempRawData</span><span class="p">[</span><span class="mi">9</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">levelRawData</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+      <span class="n">nowmode</span> <span class="o">=</span> <span class="s">"dehumidifier"</span><span class="p">;</span>
+      <span class="n">nowtemp</span> <span class="o">=</span> <span class="mi">27</span><span class="p">;</span>
+      <span class="n">nowlevel</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"tempup"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//1℃あげた温度データを送信</span>
+      <span class="n">nowtemp</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">tempRawData</span><span class="p">[</span><span class="n">nowtemp</span> <span class="o">-</span> <span class="mi">18</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"tempdown"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//1℃下げた温度データを送信</span>
+      <span class="n">nowtemp</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">tempRawData</span><span class="p">[</span><span class="n">nowtemp</span> <span class="o">-</span> <span class="mi">18</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"levelup"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//1あげた風量データを送信</span>
+      <span class="n">nowlevel</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">tempRawData</span><span class="p">[</span><span class="n">nowlevel</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"leveldown"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//1下げた風量データを送信</span>
+      <span class="n">nowlevel</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">tempRawData</span><span class="p">[</span><span class="n">nowlevel</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">delay</span><span class="p">(</span><span class="mi">500</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="n">str</span><span class="p">.</span><span class="n">compareTo</span><span class="p">(</span><span class="s">"off"</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="c1">//停止データを送信</span>
+      <span class="n">irsend</span><span class="p">.</span><span class="n">sendRaw</span><span class="p">(</span><span class="n">offRawData</span><span class="p">,</span> <span class="n">IR_RAW_DATA_SIZE</span><span class="p">,</span> <span class="n">TRANSMIT_CAPTURE_SIZE</span><span class="p">);</span>
+      <span class="n">nowmode</span> <span class="o">=</span> <span class="s">"stop"</span><span class="p">;</span>
+      <span class="n">nowtemp</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="n">nowlevel</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="実際の動作">実際の動作</h1>
+
+<p>実際に動作させたときの動画は<span style="color: #00FF66; "><a href="https://twitter.com/yuu_gakusei/status/1579119524573769729">こちら</a></span>です。<br /></p>
+
+<h1 id="まとめ">まとめ</h1>
+
+<p>今回初めてSwiftでのアプリ開発をしてみた割に意外と思っていた動作を実現できてよかったです。<br />
+現段階ではローカルな環境でしか動作しないため、今後は外部からのアクセスができるようにしたいと考えています。</p>
+:ET
