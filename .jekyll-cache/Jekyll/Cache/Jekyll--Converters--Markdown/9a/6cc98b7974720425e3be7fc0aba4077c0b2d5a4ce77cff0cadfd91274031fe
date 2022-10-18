@@ -1,0 +1,281 @@
+I"YF<p>前回行ったMPU6886でのYaw角推定ではどうしてもドリフトが起こってしまい綺麗に値を取ることができず、調べているとMPU6050のDMPを使うと簡単に姿勢を取得できるということがわかったので、その方法をまとめておきます。<br />
+<strong>DMP</strong>(Digital Motion Processor)とはモーションセンサMPUシリーズに内蔵された自身の姿勢角を算出する機能です。</p>
+
+<details open="">
+  <summary>**目次**</summary>
+<ul id="markdown-toc">
+  <li><a href="#準備" id="markdown-toc-準備">準備</a></li>
+  <li><a href="#接続" id="markdown-toc-接続">接続</a></li>
+  <li><a href="#ライブラリのインストール" id="markdown-toc-ライブラリのインストール">ライブラリのインストール</a></li>
+  <li><a href="#センサーのキャリブレーションプログラムの実行" id="markdown-toc-センサーのキャリブレーションプログラムの実行">センサーのキャリブレーションプログラムの実行</a></li>
+  <li><a href="#プログラムの実行" id="markdown-toc-プログラムの実行">プログラムの実行</a></li>
+  <li><a href="#動作" id="markdown-toc-動作">動作</a></li>
+</ul>
+
+</details>
+<p><br /></p>
+
+<h1 id="準備">準備</h1>
+<ul>
+  <li>M5Stack Basic(Arduino系であれば可)</li>
+  <li>GY-521(MPU6050)</li>
+  <li>macOS(書き込みはPlatformIO)</li>
+</ul>
+
+<h1 id="接続">接続</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">M5Stack</th>
+      <th style="text-align: center">GY-521</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">3.3V</td>
+      <td style="text-align: center">VCC</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">GND</td>
+      <td style="text-align: center">GND</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SDA</td>
+      <td style="text-align: center">SDA</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">SCL</td>
+      <td style="text-align: center">SCL</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="ライブラリのインストール">ライブラリのインストール</h1>
+<p>PlatformIOの場合は、<strong>platformio.ini</strong>に以下を追加する。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lib_deps = electroniccats/MPU6050@^0.6.0
+</code></pre></div></div>
+<p><br /></p>
+<h1 id="センサーのキャリブレーションプログラムの実行">センサーのキャリブレーションプログラムの実行</h1>
+
+<p>ライブラリにある<strong>IMU_Zero</strong>というサンプルスケッチを実行し、出力された値を記録しておく。
+<br /><br /></p>
+
+<h1 id="プログラムの実行">プログラムの実行</h1>
+
+<p>サンプルスケッチの<strong>MPU6050_DMP6</strong>をM5Stack用に書き換えた。<br />
+描画の際は画面がちらつくと見づらいのでLovyanGFXを使って描画している。</p>
+
+<details open="">
+  <summary>main.cpp</summary>
+
+  <figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+</pre></td><td class="code"><pre><span class="cp">#define LGFX_AUTODETECT
+#define LGFX_USE_V1
+</span>
+<span class="cp">#include</span> <span class="cpf">&lt;M5Stack.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">"MPU6050_6Axis_MotionApps20.h"</span><span class="cp">
+#include</span> <span class="cpf">&lt;LovyanGFX.hpp&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;LGFX_AUTODETECT.hpp&gt;</span><span class="cp">
+</span><span class="n">MPU6050</span> <span class="n">mpu</span><span class="p">;</span>
+
+<span class="k">static</span> <span class="n">LGFX</span> <span class="n">lcd</span><span class="p">;</span>
+<span class="k">static</span> <span class="n">LGFX_Sprite</span> <span class="nf">canvas</span><span class="p">(</span><span class="o">&amp;</span><span class="n">lcd</span><span class="p">);</span>
+
+<span class="c1">// MPU control/status vars</span>
+<span class="kt">uint8_t</span> <span class="n">mpuIntStatus</span><span class="p">;</span>   <span class="c1">// holds actual interrupt status byte from MPU</span>
+<span class="kt">uint8_t</span> <span class="n">devStatus</span><span class="p">;</span>      <span class="c1">// return status after each device operation (0 = success, !0 = error)</span>
+<span class="kt">uint16_t</span> <span class="n">packetSize</span><span class="p">;</span>    <span class="c1">// expected DMP packet size (default is 42 bytes)</span>
+<span class="kt">uint8_t</span> <span class="n">fifoBuffer</span><span class="p">[</span><span class="mi">64</span><span class="p">];</span> <span class="c1">// FIFO storage buffer</span>
+
+<span class="kt">float</span> <span class="n">GYdegree</span> <span class="o">=</span> <span class="mf">0.0</span><span class="n">F</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="c1">// orientation/motion vars</span>
+<span class="n">Quaternion</span> <span class="n">q</span><span class="p">;</span>           <span class="c1">// [w, x, y, z]         quaternion container</span>
+<span class="n">VectorFloat</span> <span class="n">gravity</span><span class="p">;</span>    <span class="c1">// [x, y, z]            gravity vector</span>
+<span class="kt">float</span> <span class="n">ypr</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>           <span class="c1">// [roll, pitch, yaw]   roll/pitch/yaw container and gravity vector</span>
+
+<span class="kt">void</span> <span class="nf">setupMPU</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Wire</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">Wire</span><span class="p">.</span><span class="n">setClock</span><span class="p">(</span><span class="mi">400000</span><span class="p">);</span> <span class="c1">// 400kHz I2C clock. Comment this line if having compilation difficulties</span>
+  <span class="n">mpu</span><span class="p">.</span><span class="n">initialize</span><span class="p">();</span>
+  <span class="n">devStatus</span> <span class="o">=</span> <span class="n">mpu</span><span class="p">.</span><span class="n">dmpInitialize</span><span class="p">();</span>
+
+  <span class="c1">// supply your own gyro offsets here, scaled for min sensitivity</span>
+  <span class="n">mpu</span><span class="p">.</span><span class="n">setXAccelOffset</span><span class="p">(</span><span class="o">-</span><span class="mi">2634</span><span class="p">);</span>
+  <span class="n">mpu</span><span class="p">.</span><span class="n">setYAccelOffset</span><span class="p">(</span><span class="o">-</span><span class="mi">38</span><span class="p">);</span>
+  <span class="n">mpu</span><span class="p">.</span><span class="n">setZAccelOffset</span><span class="p">(</span><span class="mi">472</span><span class="p">);</span>
+  <span class="n">mpu</span><span class="p">.</span><span class="n">setXGyroOffset</span><span class="p">(</span><span class="mi">203</span><span class="p">);</span>
+  <span class="n">mpu</span><span class="p">.</span><span class="n">setYGyroOffset</span><span class="p">(</span><span class="mi">54</span><span class="p">);</span>
+  <span class="n">mpu</span><span class="p">.</span><span class="n">setZGyroOffset</span><span class="p">(</span><span class="mi">28</span><span class="p">);</span>
+
+  <span class="c1">// make sure it worked (returns 0 if so)</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">devStatus</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Calibration Time: generate offsets and calibrate our MPU6050</span>
+    <span class="n">mpu</span><span class="p">.</span><span class="n">CalibrateAccel</span><span class="p">(</span><span class="mi">6</span><span class="p">);</span>
+    <span class="n">mpu</span><span class="p">.</span><span class="n">CalibrateGyro</span><span class="p">(</span><span class="mi">6</span><span class="p">);</span>
+    <span class="n">mpu</span><span class="p">.</span><span class="n">setDMPEnabled</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+    <span class="n">packetSize</span> <span class="o">=</span> <span class="n">mpu</span><span class="p">.</span><span class="n">dmpGetFIFOPacketSize</span><span class="p">();</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">print</span><span class="p">(</span><span class="s">"DMP Initialization failed."</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">getYawPitchRoll</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">mpu</span><span class="p">.</span><span class="n">dmpGetCurrentFIFOPacket</span><span class="p">(</span><span class="n">fifoBuffer</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Get the Latest packet</span>
+    <span class="n">mpu</span><span class="p">.</span><span class="n">dmpGetQuaternion</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="p">,</span> <span class="n">fifoBuffer</span><span class="p">);</span>
+    <span class="n">mpu</span><span class="p">.</span><span class="n">dmpGetGravity</span><span class="p">(</span><span class="o">&amp;</span><span class="n">gravity</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">q</span><span class="p">);</span>
+    <span class="n">mpu</span><span class="p">.</span><span class="n">dmpGetYawPitchRoll</span><span class="p">(</span><span class="n">ypr</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">q</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">gravity</span><span class="p">);</span>
+    <span class="n">Serial</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="kt">int</span><span class="p">(</span><span class="n">ypr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">M_PI</span><span class="p">));</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">GetGyro</span><span class="p">()</span>   <span class="c1">//yaw角のみ角度の取得</span>
+<span class="p">{</span>
+    <span class="n">getYawPitchRoll</span><span class="p">();</span>
+    <span class="n">yaw</span> <span class="o">=</span> <span class="kt">int</span><span class="p">(</span><span class="n">ypr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">M_PI</span><span class="p">);</span>
+    <span class="k">return</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">yaw</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">DrawGyro</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">gyro</span> <span class="o">=</span> <span class="n">GetGyro</span><span class="p">();</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+  <span class="k">while</span> <span class="p">(</span><span class="nb">true</span><span class="p">)</span>    <span class="c1">//LGFXを用いて円上に現在の角度の点を表示</span>
+  <span class="p">{</span> 
+    <span class="n">M5</span><span class="p">.</span><span class="n">update</span><span class="p">();</span>
+    <span class="n">canvas</span><span class="p">.</span><span class="n">fillScreen</span><span class="p">(</span><span class="n">BLACK</span><span class="p">);</span>
+    <span class="n">gyro</span> <span class="o">=</span> <span class="n">GetGyro</span><span class="p">();</span>
+    <span class="n">GYdegree</span> <span class="o">=</span> <span class="p">(</span><span class="n">gyro</span><span class="o">-</span><span class="mi">90</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">PI</span><span class="p">);</span>
+    <span class="n">canvas</span><span class="p">.</span><span class="n">drawCircle</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">WHITE</span><span class="p">);</span>
+    <span class="n">canvas</span><span class="p">.</span><span class="n">fillCircle</span><span class="p">(</span><span class="mi">160</span> <span class="o">+</span> <span class="mi">80</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">GYdegree</span><span class="p">),</span> <span class="mi">120</span> <span class="o">+</span> <span class="mi">80</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">GYdegree</span><span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="n">GREEN</span><span class="p">);</span>
+    <span class="n">canvas</span><span class="p">.</span><span class="n">setCursor</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">canvas</span><span class="p">.</span><span class="n">printf</span><span class="p">(</span><span class="s">"%4d"</span><span class="p">,</span> <span class="n">gyro</span><span class="p">);</span>
+    <span class="n">canvas</span><span class="p">.</span><span class="n">pushSprite</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">setup</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Power</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">Serial</span><span class="p">.</span><span class="n">begin</span><span class="p">(</span><span class="mi">115200</span><span class="p">);</span>
+  <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">fillScreen</span><span class="p">(</span><span class="n">BLACK</span><span class="p">);</span> <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">setTextColor</span><span class="p">(</span><span class="n">WHITE</span> <span class="p">,</span> <span class="n">BLACK</span><span class="p">);</span> <span class="n">M5</span><span class="p">.</span><span class="n">Lcd</span><span class="p">.</span><span class="n">setTextSize</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>  <span class="c1">//M5StackのLCDの設定</span>
+  <span class="n">lcd</span><span class="p">.</span><span class="n">init</span><span class="p">();</span> <span class="n">lcd</span><span class="p">.</span><span class="n">setRotation</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">canvas</span><span class="p">.</span><span class="n">setColorDepth</span><span class="p">(</span><span class="mi">8</span><span class="p">);</span> <span class="n">canvas</span><span class="p">.</span><span class="n">setTextWrap</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span> <span class="n">canvas</span><span class="p">.</span><span class="n">setTextSize</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span> <span class="n">canvas</span><span class="p">.</span><span class="n">createSprite</span><span class="p">(</span><span class="n">lcd</span><span class="p">.</span><span class="n">width</span><span class="p">(),</span> <span class="n">lcd</span><span class="p">.</span><span class="n">height</span><span class="p">());</span>   <span class="c1">//LGFXの初期設定</span>
+  <span class="n">setupMPU</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">DrawGyro</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+</details>
+<p><br /></p>
+<blockquote>
+  <p>34行目~39行目のmpu.setXAccelOffset(-2634);等の値は、IMU_Zeroで出力された値を入力する。</p>
+</blockquote>
+
+<h1 id="動作">動作</h1>
+
+<p>しっかり動いてくれています。ドリフトに関しても１時間放置して+-1度程度だったので許容範囲内だと思います。<br />
+センサーを激しく振り回しても、角度がずれることはありませんでした。</p>
+:ET
