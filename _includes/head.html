@@ -10,9 +10,9 @@
   <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
   <meta property="og:image" content="{% if page.title %}{% else %}{{"/images/avatar.jpeg" | prepend: site.baseurl}}{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta property="og:title" content= "{{ site.post.title }}" />
+  <meta property="og:title" content= "{{ page.title }}" />
   <meta property="og:description" content="" />
-  <meta property="og:image" content="./post-img/{{ site.post.category }}/{{ site.post.image }}" />
+  <meta property="og:image" content="{{ site.baseurl }}/post-img/{{ site.category }}/{{ site.image }}" />
 
   {% capture blogtitle %}{{page.title}}{%endcapture%}
   <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
