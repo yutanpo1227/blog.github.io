@@ -12,7 +12,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:title" content= "{{ page.title }}" />
   <meta property="og:description" content="" />
-  <meta property="og:image" content="{{ site.baseurl }}/post-img/{{ site.category }}/{{ site.image }}" />
+  <meta property="og:image" content="{{ site.baseurl }}/post-img/{{ page.category }}/{{ page.image }}" />
 
   {% capture blogtitle %}{{page.title}}{%endcapture%}
   <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
