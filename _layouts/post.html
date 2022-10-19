@@ -9,7 +9,7 @@ layout: default
     </div>
     <div class="meta">
       <time class="published" datetime="{{ page.date }}">{{ page.date | date: "%d %b %Y %R" }}</time>
-      <a href="{{ site.author.cv }}" class="author"><span class="name">{{ site.author.last_name }}</span><img src="{{ site.author.avatar | prepend: site.baseurl }}" alt="ViKapitoshka" /></a>
+      <a href="{{ site.author.cv }}" class="author"><span class="name">{{ site.author.last_name }}</span><img src="{{ site.author.avatar | prepend: site.baseurl }}" alt="yutanpo1227" /></a>
     </div>
   </header>
   {{ content }}
@@ -25,10 +25,10 @@ layout: default
 </article>
 <ul class="actions pagination">
   {% if page.previous.url %}
-    <li><a href="{{page.previous.url}}" class="button big previous icon">&laquo; {{page.previous.title}}<i class="fw fas fa-chevron-left"></i> previous</a></li>
+    <li><a href="https://yutanpo1227.github.io{{ site.baseurl }}/{{ page.previous.category }}/{{page.previous.year}}/{{page.previous.folder}}.html" class="button big previous icon">&laquo; {{page.previous.title}}</a></li>
   {% endif %}
   {% if page.next.url %}
-    <li><a href="{{page.next.url}}" class="button big next icon">{{page.next.title}} &raquo; next <i class="fw fas fa-chevron-right"></i></a></li>
+    <li><a href="https://yutanpo1227.github.io{{ site.baseurl }}/{{ page.next.category }}/{{page.next.year}}/{{page.next.folder}}.html" class="button big next icon">{{page.next.title}} &raquo;</a></li>
   {% endif %}
 </ul>
 

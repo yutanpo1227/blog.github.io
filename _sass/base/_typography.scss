@@ -137,7 +137,7 @@
 
 	pre {
 		-webkit-overflow-scrolling: touch;
-		font-family: _font(family-fixed);
+		font-family: "inherit", monospace;
 		font-size: 0.9em;
 		margin: 0 0 _size(element-margin) 0;
 

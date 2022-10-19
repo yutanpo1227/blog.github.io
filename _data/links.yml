@@ -1,6 +1,6 @@
 # blog page sections
-- name: AboutMe
-  href: '/AboutMe/'
+- name: aboutme
+  href: '/aboutme/'
   
 - name: 雑記
   href: '/雑記/'

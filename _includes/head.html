@@ -1,4 +1,4 @@
-<head>
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,12 @@
   <meta name="robots" content="all"/>
   <meta name="author" content="{{ site.author.name }}">
   <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
-  <meta property="og:image" content="{% if page.title %}{% else %}{{"/images/avatar.jpeg" | prepend: site.baseurl}}{% endif %}">
+  <!-- <meta property="og:image" content="{% if page.title %}{% else %}{{"/images/avatar.jpeg" | prepend: site.baseurl}}{% endif %}"> -->
+  <meta name="twitter:card" content="summary_large_image">
+
+  <meta property="og:title" content= "{{ page.title }}" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="https://yutanpo1227.github.io{{ site.baseurl }}/post-img/{{ page.category }}{{ page.image }}" />
 
   {% capture blogtitle %}{{page.title}}{%endcapture%}
   <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
