@@ -1,0 +1,76 @@
+I"�<p><img src="/blog.github.io/post-img/aboutme/featured.jpg" alt="2021Asia-Pacific" /></p>
+
+<p>はじめまして！</p>
+<h1 id="自己紹介">自己紹介</h1>
+<p>明治大学理工学部情報科学科2年(当時)のYuuです。<br />
+小学5年生からロボカップという大会に出場し始め、サッカーではKollagen、レスキューシミュレーションではTetu&amp;Teru&amp;Yuというチームに所属していました。<br />
+最高順位はレスキューシミュレーション世界5位でした。<br />
+普段は情報系学生としてアルゴリズムや機械学習などの勉強をしていますが、趣味でハードやWeb系などの言語なんかに手を出したりしています。<br /></p>
+<h1 id="受賞歴">受賞歴</h1>
+
+<h2 id="2020年度">2020年度</h2>
+<ul>
+  <li>ロボカップジュニア2020北埼玉ノード 優勝</li>
+</ul>
+
+<h2 id="2021年度">2021年度</h2>
+<ul>
+  <li>ロボカップジュニア2021北埼玉ノード 2位</li>
+  <li>ロボカップジュニア2021埼玉ブロック 優勝</li>
+  <li>ロボカップジュニア2021全国大会オンライン 5位</li>
+  <li>ロボカップジュニアAsia-Pacific2021 4位</li>
+</ul>
+
+<h2 id="2022年度">2022年度</h2>
+<ul>
+  <li>ロボカップジュニア2022埼玉ブロック 優勝</li>
+  <li>ロボカップジュニア2022埼玉ブロック 最優秀プレゼンテーション賞</li>
+  <li>ロボカップジュニア2022埼玉ブロック 最優秀インタビュー賞</li>
+  <li>ロボカップジュニア2022けいはんな全国大会 8位</li>
+  <li>ロボカップジュニア2022Thai-Bankok世界大会 5位</li>
+</ul>
+
+<p><img src="/blog.github.io/post-img/aboutme/1.jpg" alt="2022Thai-Bankok" /></p>
+
+<h1 id="contact">Contact</h1>
+<p>Twitter:<span style="color: #00FF66; "><a href="https://twitter.com/yuu_gakusei">@yuu_gakusei</a></span><br />
+E-mail:<span style="color: #00FF66; ">yutanpogame@gmail.com</span></p>
+
+<hr />
+<h1 id="ロボカップ活動内容">ロボカップ活動内容</h1>
+<h2 id="サッカーライトウェイト">サッカーライトウェイト</h2>
+<p>ロボカップサッカーライトウェイトは自律型ロボット２台を用いて、赤外線ボールを相手のゴールに多く入れた方が勝ちというシンプルな競技です。<br />
+<img src="/blog.github.io/post-img/aboutme/soccer.gif" alt="soccerlightweight" /></p>
+
+<p>2020年までは2人でチームをやっていたので、一人一台という形で活動していました。<br />
+なので機体や基盤の設計、プログラム作成は分担せず一人で全てやっていました。<br />
+<strong>その時の機体↓</strong><br />
+<img src="/blog.github.io/post-img/aboutme/2020.jpeg" alt="2020ロボット" /></p>
+
+<p>2021年以降は3人で組むことになったため役割分担をし、それ以降自分は新しくマシンに導入したカメラの調査、プログラムの作成を行いました。<br />
+<strong>2021年の機体↓</strong><br />
+<img src="/blog.github.io/post-img/aboutme/2021.jpeg" alt="2021ロボット" /></p>
+
+<p><strong>2022年の機体とプレゼンテーションシート↓</strong><br />
+<img src="/blog.github.io/post-img/aboutme/2022.jpeg" alt="2022ロボット" />
+<img src="/blog.github.io/post-img/aboutme/soccerpresen.jpeg" alt="2022プレゼン" /></p>
+
+<h2 id="レスキューシミュレーション">レスキューシミュレーション</h2>
+<p>2022年度ではサッカーライトウェイトだけでなく、レスキューシミュレーションにも参加しました。<br />
+レスキューシミュレーションでは与えられた迷路を探索して、被災者を発見して報告するとポイントが入り獲得ポイントを競う競技です。<br />
+<img src="/blog.github.io/post-img/aboutme/rescue.png" alt="rescuesimulation" /></p>
+
+<p>チームは３人で活動していたので自分はOpenCVを用いた被災者発見の画像認識のプログラムを作成しました。<br />
+<strong>レスキューシミュレーションのプレゼンテーション↓</strong><br />
+<img src="/blog.github.io/post-img/aboutme/rescuepresen.jpeg" alt="2022プレゼン" /></p>
+
+<hr />
+
+<h1 id="その他写真など">その他写真など</h1>
+
+<p><img src="/blog.github.io/post-img/aboutme/soccer2.gif" alt="" /></p>
+
+<p><img src="/blog.github.io/post-img/aboutme/soccer1.jpeg" alt="" />
+<img src="/blog.github.io/post-img/aboutme/soccer3.jpeg" alt="" />
+<img src="/blog.github.io/post-img/aboutme/soccer4.jpeg" alt="" /></p>
+:ET
