@@ -55,12 +55,14 @@ GEM
     terminal-table (2.0.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
     unicode-display_width (1.8.0)
+    webrick (1.4.4)
 
 PLATFORMS
   universal-darwin-21
 
 DEPENDENCIES
   jekyll (~> 4.0)
+  webrick (~> 1.4)
 
 BUNDLED WITH
    2.3.23
