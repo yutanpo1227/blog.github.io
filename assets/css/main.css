@@ -1156,7 +1156,7 @@ p {
 
 h1, h2, h3, h4, h5, h6 {
   color: #3c3b3b;
-  font-family: "Raleway", Helvetica, sans-serif;
+  font-family: "Arial"/*"Raleway", Helvetica, sans-serif*/;
   font-weight: 800;
   letter-spacing: 0.25em;
   line-height: 1.65;
@@ -1798,6 +1798,7 @@ ul {
           ul.actions.small li:first-child {
             padding-top: 0; } }
   ul.posts {
+    box-shadow : 0 0 24px rgba( 40 , 100 , 145 , .2 ) ;
     list-style: none;
     padding: 0; }
     ul.posts li {
