@@ -230,7 +230,7 @@
 .materials__bar:nth-child(1)::after,
 .materials__bar:nth-child(3)::after,
 .materials__bar:nth-child(5)::after{
-    background : #7bff91 ;
+    background : #7bffe2 ;
 }
 .materials__bar:nth-child(3)::before,
 .materials__circle:nth-child(7)::after{
@@ -239,7 +239,7 @@
 .materials__bar:nth-child(2)::before,
 .materials__circle:nth-child(7)::before,
 .materials__bar:nth-child(4)::before{
-    background : #06c7f2 ; 
+    background : #74e5fe ; 
 }
 .materials__bar:nth-child(2)::after,
 .materials__circle:nth-child(8)::after{
