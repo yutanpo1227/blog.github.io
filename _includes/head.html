@@ -14,6 +14,10 @@
   <meta property="og:title" content= "{{ page.title }}" />
   <meta property="og:description" content="" />
   <meta property="og:image" content="https://yutanpo1227.github.io{{ site.baseurl }}/post-img/{{ page.category }}{{ page.image }}" />
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{page.title}}">
+  <meta name="twitter:description" content="">
+  <meta name="twitter:image" content="https://yutanpo1227.github.io{{ site.baseurl }}/post-img/{{ page.category }}{{ page.image }}"> 
 
   {% capture blogtitle %}{{page.title}}{%endcapture%}
   <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
