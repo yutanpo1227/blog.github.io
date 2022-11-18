@@ -1,3 +1,7 @@
+/* @font-face {
+	font-family: 'Teko';
+	src: url(/font/Teko-Regular.ttf);
+} */
 .colorbutton{
     position : relative ;
     display : flex ;
