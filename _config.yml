@@ -27,4 +27,5 @@ kramdown:
 
 permalink: /:categories/:year/:title.html
 
-
+gems:
+  - jekyll-sitemap
