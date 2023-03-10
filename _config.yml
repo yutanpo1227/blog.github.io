@@ -1,4 +1,4 @@
-title: YutanPost
+title: Postanpo
 description: > # this means to ignore newlines until "baseurl:"
   情報系大学生のしがないブログです。<br>
   主にソフトやハードの開発日記を中心にアップしようと思っています。<br>
@@ -14,7 +14,7 @@ author:
   github_username:  yutanpo1227
   email: komazawayuu1227@icloud.com
   vk_id: id0000000
-  telegram_name: ゆたんぽすと
+  telegram_name: Postanpo
   logo: '/images/logo.svg'
 
 highlighter: rouge
