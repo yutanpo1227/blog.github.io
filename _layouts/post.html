@@ -16,7 +16,7 @@ layout: default
   
   <footer>
     <ul class="stats">
-      <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false" data-text="{{site.author.name}}ブログ『{{page.title}}』" data-lang="ja" data-url="https://yutanpo1227.github.io{{site.baseurl}}{{page.url}}">Tweet</a>
+      <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false" data-text="{{site.author.name}}ブログ『{{page.title}}』" data-lang="ja" data-url="https://yutanpo1227-dev.web.app/{{page.url}}">Tweet</a>
       <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
       <!--<li><a class="icon" href="{{ site.url }}"><i class="fas fa-fw fa-folder"></i> GitHub</a></li>-->
       <!--<li><a href="//github.com/yutanpo1227/blog.github.io/blob/master/{{ page.path }}" class="icon"><i class="fas fa-fw fa-edit"></i> Edit</a></li>-->
@@ -27,10 +27,10 @@ layout: default
 </article>
 <ul class="actions pagination">
   {% if page.previous.url %}
-    <li><a href="https://yutanpo1227.github.io{{ site.baseurl }}/{{ page.previous.category }}/{{page.previous.year}}/{{page.previous.folder}}.html" class="button big previous icon">&laquo; {{page.previous.title}}</a></li>
+    <li><a href="https://yutanpo1227-dev.web.app/{{ page.previous.category }}/{{page.previous.year}}/{{page.previous.folder}}.html" class="button big previous icon">&laquo; {{page.previous.title}}</a></li>
   {% endif %}
   {% if page.next.url %}
-    <li><a href="https://yutanpo1227.github.io{{ site.baseurl }}/{{ page.next.category }}/{{page.next.year}}/{{page.next.folder}}.html" class="button big next icon">{{page.next.title}} &raquo;</a></li>
+    <li><a href="https://yutanpo1227-dev.web.app/{{ page.next.category }}/{{page.next.year}}/{{page.next.folder}}.html" class="button big next icon">{{page.next.title}} &raquo;</a></li>
   {% endif %}
 </ul>
 

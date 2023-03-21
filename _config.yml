@@ -2,8 +2,8 @@ title: Postanpo
 description: > # this means to ignore newlines until "baseurl:"
   情報系大学生のしがないブログです。<br>
   主にソフトやハードの開発日記を中心にアップしようと思っています。<br>
-baseurl: "/blog.github.io" # the subpath of your site, e.g. /blog
-url: "https://github.com/yutanpo1227" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://yutanpo1227-dev.web.app" # the base hostname & protocol for your site, e.g. http://example.com
 
 
 author:
